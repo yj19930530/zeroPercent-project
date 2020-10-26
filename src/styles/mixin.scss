@@ -1,0 +1,7 @@
+@mixin flex($direction, $row, $col) {
+    display: flex;
+    flex-direction: $direction;
+    align-items: $row;
+    justify-content: $col;
+}
+$form-width:800px;
