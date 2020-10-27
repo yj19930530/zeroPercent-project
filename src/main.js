@@ -8,7 +8,9 @@ import Cookies from 'js-cookie';
 import ElementUI from 'element-ui';
 import './styles/theme/index.css'; // 百分之0 主题
 import VueCropper from 'vue-cropper';
-Vue.use(VueCropper)
+Vue.use(VueCropper);
+import echarts from 'echarts';
+Vue.prototype.$echarts = echarts;
 Vue.use(ElementUI, {
     size: 'small'
 });

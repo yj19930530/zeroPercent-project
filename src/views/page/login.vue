@@ -69,6 +69,7 @@
 <script>
 import { userLogin } from "@/api/index";
 import { saveToken } from "../../utils/cookie";
+import Cookies from "js-cookie";
 export default {
   data: function () {
     return {
@@ -84,6 +85,10 @@ export default {
       },
       btnloading: false,
     };
+  },
+  created() {
+    const access_token = Cookies.get("Access-Token");
+    if (access_token) return this.$router.push("/info");
   },
   methods: {
     submitForm() {

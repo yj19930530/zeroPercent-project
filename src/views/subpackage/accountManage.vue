@@ -137,7 +137,7 @@
             <el-input
               maxlength="20"
               class="input-width"
-              placeholder="请输入密码"
+              placeholder="请输入姓名"
               v-model.trim="form.name"
             ></el-input>
           </el-form-item>
@@ -145,7 +145,7 @@
             <el-input
               maxlength="11"
               class="input-width"
-              placeholder="请输入密码"
+              placeholder="请输手机号"
               v-model.trim="form.mblNo"
             ></el-input>
           </el-form-item>

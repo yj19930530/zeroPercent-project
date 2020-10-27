@@ -1,14 +1,14 @@
 <template>
   <div id="header-container">
     <div id="header-content-left">
-      <img src="@/images/user/logo-left.png" alt />
+      <img src="@/images/user/ero.png" alt />
     </div>
     <div id="header-content-right">
       <div id="header-user-name">
         <img src="@/images/user/user.png" alt />
         <el-dropdown trigger="click" @command="handleCommand">
-          <span class="el-dropdown-link">
-            admin
+          <span class="el-dropdown-link fc-fff">
+            {{userName}}
             <i class="el-icon-arrow-down el-icon--right"></i>
           </span>
           <el-dropdown-menu slot="dropdown">
@@ -30,6 +30,7 @@ export default {
       timer: null,
       nowTime: "",
       access_token: "",
+      userName:'',
     };
   },
   created() {
@@ -38,6 +39,7 @@ export default {
       this.getTime();
     }, 1000);
     this.access_token = Cookies.get("Access-Token");
+    this.userName = Cookies.get("userName");
   },
   destroyed() {
     clearInterval(this.timer);
@@ -91,20 +93,22 @@ export default {
   width: 100%;
   height: 50px;
   box-shadow: 0 0 6px #bfbfbf;
+  background-color: rgb(50, 65, 87);
   z-index: 7;
   @include flex(row, center, space-between);
   #header-content-left {
     width: 250px;
-    height: 100%;
-    @include flex(row, center, center);
+    height: 50px;
+    @include flex(row, center, null);
     span {
       font-size: 20px;
       font-weight: bold;
       color: #ffffff;
     }
     img {
-      width: 150px;
-      height: 70%;
+      margin-left: 10px;
+      width: 104px;
+      height: 100%;
     }
   }
   #header-content-right {
@@ -114,15 +118,15 @@ export default {
       @include flex(row, center, center);
       img {
         margin-right: 10px;
-        width: 30px;
-        height: 30px;
+        width: 20px;
+        height: 20px;
         border-radius: 30px;
       }
     }
     #header-now-time {
       margin-right: 30px;
       font-size: 14px;
-      color: #999999;
+      color: #ffffff;
     }
   }
 }

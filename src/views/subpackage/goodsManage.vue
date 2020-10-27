@@ -652,7 +652,7 @@ export default {
     // 分类下拉选择
     classChange(val) {
       if (val.length) {
-        this.form.items = JSON.stringify(val);
+        this.form.items = val.join(",");
       } else {
         this.form.items = "";
       }
@@ -660,7 +660,7 @@ export default {
     // 关键词下拉选择
     keyChange(val) {
       if (val.length) {
-        this.form.keyWords = JSON.stringify(val);
+        this.form.keyWords = val.join(",");
       } else {
         this.form.keyWords = "";
       }
@@ -668,7 +668,7 @@ export default {
     // 设计师下拉选择
     designersChange(val) {
       if (val.length) {
-        this.form.designers = JSON.stringify(val);
+        this.form.designers = val.join(",");
       } else {
         this.form.designers = "";
       }
@@ -822,9 +822,9 @@ export default {
       this.imgId = imgObj.id;
       this.imgArr = JSON.parse(data.showImgInfo);
       this.goodsUploadList = JSON.parse(data.imgInfo);
-      this.designersArr = JSON.parse(data.designers);
-      this.itemsArr = JSON.parse(data.items);
-      this.keyWordsArr = JSON.parse(data.keyWords);
+      this.designersArr = data.designers.split(",");
+      this.itemsArr = data.items.split(",");
+      this.keyWordsArr = data.keyWords.split(",");
       this.dialogVisible = true;
       return this.form;
     },
@@ -908,9 +908,6 @@ export default {
             return showToast("请上传商品图片", "error");
           this.form.showImgInfo = JSON.stringify(this.imgArr);
           this.form.imgInfo = JSON.stringify(this.goodsUploadList);
-          this.form.designers = JSON.stringify(this.designersArr);
-          this.form.items = JSON.stringify(this.itemsArr);
-          this.form.keyWords = JSON.stringify(this.keyWordsArr);
           const type = this.timeRuleHandle(this.form);
           if (!type) return;
           this.btnloading = true;

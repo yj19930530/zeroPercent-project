@@ -322,13 +322,17 @@ export default {
       this.getTable();
     },
     // 删除图片
-    deleteCover() {
-      deleteFile({
-        id: this.imgId,
-      }).then(() => {
+    async deleteCover() {
+      this.$confirm("此操纵将永久删除该图片,是否继续?", {
+        confirmButtonText: "确定",
+        type: "info",
+      }).then(async () => {
         this.form.logo = "";
-        this.imgId = "";
         this.coverImg = null;
+        await deleteFile({
+          id: this.imgId,
+        });
+        this.imgId = "";
       });
     },
     // 截图完成
@@ -409,6 +413,7 @@ export default {
     submitForm() {
       this.$refs["ruleForm"].validate((valid) => {
         if (valid) {
+          if (!this.imgArr.length) return showToast("请上传logo", "error");
           this.btnloading = true;
           this.form.logo = JSON.stringify(this.imgArr);
           addRowIn(this.form)
@@ -509,7 +514,7 @@ export default {
 }
 .img-style {
   cursor: pointer;
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
 }
 </style>
