@@ -4,33 +4,32 @@ import Cookies from 'js-cookie';
 import { Message, MessageBox } from 'element-ui';
 
 let instance = axios.create({
-    baseURL: 'http://192.168.1.72:9009/',
-    // baseURL: 'http://47.114.135.205:9009/',
+    // baseURL: 'http://192.168.1.72:9009/',
+    baseURL: 'http://47.114.135.205:9009/',
 });
 instance.interceptors.request.use(config => {
     const questStatus = config.method;
+    config.timeout = 15000;
     const access_token = Cookies.get('Access-Token');
+    config.headers.post['Authorization'] = 'Bearer ' + access_token;
     switch (questStatus) {
         case 'post': {
-            config.timeout = 10000;
+            config.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
             config.params = config.params ? config.params : {};
             if (config.params.loginType) {
+                config.headers.post['Content-Type'] = 'application/json';
                 delete config.params.loginType;
             } else if (config.params.uploadType) {
-                config.headers.post['token'] = access_token;
                 config.timeout = 60000;
                 config.headers['Content-Type'] = 'multipart/form-data; boundary=----WebKitFormBoundaryJ0BstsRQ55xWJzBB';
                 delete config.params.uploadType;
                 config.data = config.params;
                 delete config.params;
             } else if (config.params.arrtype) {
-                config.headers.post['token'] = access_token;
-                config.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
                 config.data = config.params.arr;
                 delete config.params;
             } else {
-                config.headers.post['token'] = access_token;
-                config.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+                config.headers.post['Authorization'] = 'Bearer ' + access_token;
             }
             break;
         }
@@ -54,7 +53,7 @@ instance.interceptors.response.use(response => {
         } else {
             return res;
         }
-        
+
     } else {
         if (res.code === 401) {
             MessageBox.confirm('认证失效请重新登录', {

@@ -133,7 +133,7 @@ export default {
     },
     // 获取数据列表
     async getTable() {
-      this.loading = false;
+      this.loading = true;
       getTablePage({
         pageNo: this.pageNum,
         pageSize: this.pageSize,
