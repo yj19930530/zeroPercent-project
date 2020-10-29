@@ -53,7 +53,6 @@
               <el-button
                 style="background-color: #009dff; border-color: #009dff"
                 type="primary"
-                :loading="btnloading"
                 @click="submitForm"
                 class="btn-login mar-top"
                 >登录</el-button

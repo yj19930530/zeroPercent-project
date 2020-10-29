@@ -3,7 +3,7 @@ import request from '@/utils/request.js';
 // 获取分页
 export const getTablePage = params => {
     return request({
-        url: '/channelManage/getPage',
+        url: '/bus/channelManage/getPage',
         method: 'post',
         params,
     });
@@ -11,7 +11,7 @@ export const getTablePage = params => {
 // 获取详情
 export const getRowDetail = params => {
     return request({
-        url: '/channelManage/get',
+        url: '/bus/channelManage/get',
         method: 'post',
         params,
     });
@@ -19,7 +19,7 @@ export const getRowDetail = params => {
 // 新增
 export const addRowIn = params => {
     return request({
-        url: '/channelManage/saveOrUpdate',
+        url: '/bus/channelManage/saveOrUpdate',
         method: 'post',
         params,
     });
@@ -27,7 +27,7 @@ export const addRowIn = params => {
 // 删除
 export const deleteRow = params => {
     return request({
-        url: '/channelManage/delete',
+        url: '/bus/channelManage/delete',
         method: 'post',
         params,
     });

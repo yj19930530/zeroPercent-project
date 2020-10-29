@@ -1,4 +1,5 @@
 import request from '@/utils/request.js';
+import requestQn from '@/utils/qnRequest.js';
 // 用户登录
 export const userLogin = params => {
     return request({
@@ -75,6 +76,30 @@ export const getKeySelect = params => {
 export const getPlatformSelect = params => {
     return request({
         url: '/bus/select/getPlatformSelect',
+        method: 'post',
+        params,
+    });
+};
+// 获取七牛token
+export const getQnToken = params => {
+    return request({
+        url: '/bus/qn/getToken',
+        method: 'post',
+        params,
+    });
+};
+// 七牛上传图片
+export const getQnImg = params => {
+    return requestQn({
+        url: '',
+        method: 'post',
+        params,
+    });
+};
+// 删除七牛图片
+export const deleteQnImg = params => {
+    return request({
+        url: `/bus/qn/delete/${params.key}`,
         method: 'post',
         params,
     });

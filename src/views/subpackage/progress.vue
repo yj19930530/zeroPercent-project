@@ -135,7 +135,9 @@
                 <source :src="vi.url" type="video/mp4" />
               </video>
               <div class="delete-video-btn" v-if="vi.type === 'video'">
-                <span class="fz-8 fc-999" @click="deleteImgRow(vi, vx)">删除</span>
+                <span class="fz-8 fc-999" @click="deleteImgRow(vi, vx)"
+                  >删除</span
+                >
               </div>
             </div>
           </el-form-item>
@@ -166,7 +168,8 @@ import {
   deleteRow, // 删除
   getRowDetail, // 获取详情
 } from "@/api/progress";
-import { updateFile, deleteFile } from "@/api/index";
+import { deleteQnImg, getQnToken, getQnImg } from "@/api/index";
+import { qnHttpimg } from "@/utils/config";
 import { showToast, objCopyPro, dateTime } from "@/utils/common.js"; // 通用方法 弹框 复制对象
 export default {
   data() {
@@ -194,17 +197,25 @@ export default {
       goodsId: "",
       imgList: [], // 视频图片上传列表
       uploadType: "img",
+      qnHttpimg: qnHttpimg,
+      uploadData: { key: "", token: "" },
     };
   },
   created() {
     this.goodsId = this.$route.query.id;
     this.goodsName = this.$route.query.name;
     this.getTableHeight(); // 表格高度
+    this.getQnTokenData(); // 获取七牛token
   },
   mounted() {
     this.getTable(); // 获取列表数据
   },
   methods: {
+    // 获取七牛token
+    async getQnTokenData() {
+      const { data } = await getQnToken();
+      this.uploadData.token = data;
+    },
     // 页面 taboe 高度
     getTableHeight() {
       this.$nextTick(() => {
@@ -222,8 +233,8 @@ export default {
         confirmButtonText: "确定",
         type: "info",
       }).then(async () => {
-        deleteFile({
-          id: row.id,
+        deleteQnImg({
+          key: row.id,
         }).then(() => {
           this.imgList.splice(index, 1);
         });
@@ -256,11 +267,12 @@ export default {
       const fileObj = f.file;
       const formData = new FormData();
       formData.append("file", fileObj);
-      formData.uploadType = true;
-      updateFile(formData).then((res) => {
+      formData.append("key", this.uploadData.key);
+      formData.append("token", this.uploadData.token);
+      getQnImg(formData).then((res) => {
         this.imgList.push({
-          id: res.data.id,
-          url: res.data.url,
+          id: res.key,
+          url: this.qnHttpimg + res.key,
           type: this.uploadType,
         });
       });
@@ -277,6 +289,7 @@ export default {
         this.$message.error("只能上传 png jpeg jpg 格式图片!");
         return false;
       } else {
+        this.uploadData.key = `picture_${new Date().getTime()}_${file.name}`;
         return true;
       }
     },
@@ -366,8 +379,8 @@ export default {
       this.$refs["ruleForm"].resetFields(); // 重置表单
       if (this.imgList.length && this.dialogTitle !== "编辑") {
         this.imgList.forEach((item) => {
-          deleteFile({
-            id: item.id,
+          deleteQnImg({
+            key: item.id,
           });
         });
       }

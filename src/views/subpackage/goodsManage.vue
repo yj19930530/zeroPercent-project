@@ -184,15 +184,17 @@
                 <i class="el-icon-plus avatar-uploader-icon fc-999 fz-20"></i>
               </div>
             </el-upload>
-            <div v-else>
-              <el-image
-                :src="coverImg"
-                class="upload-box-style"
-                fit="fill"
-              ></el-image>
-              <div class="delete-box">
+            <div v-else class="upload-box-style">
+              <el-image :src="coverImg" class="cover-img-style" fit="fill"> </el-image>
+              <img
+                class="delete-img-cover"
+                @click="deleteCover"
+                src="../../images/user/deleteimg.png"
+                alt="delete"
+              />
+              <!-- <div class="delete-box">
                 <i class="el-icon-delete fc-999 fz-15" @click="deleteCover"></i>
-              </div>
+              </div> -->
             </div>
           </el-form-item>
           <el-form-item label="占位" style="visibility: hidden">
@@ -463,8 +465,9 @@ import {
   updateState, // 修改状态
 } from "@/api/goods";
 import {
-  updateFile,
-  deleteFile,
+  getQnImg,
+  deleteQnImg,
+  getQnToken,
   getPlatformSelect,
   getKeySelect,
   getClassSelect,
@@ -472,6 +475,7 @@ import {
   getBusinessSelect,
 } from "@/api/index";
 import { DEPT_NAME } from "@/utils/validation";
+import { qnHttpimg } from "@/utils/config";
 import { showToast, objCopyPro, reText } from "@/utils/common.js"; // 通用方法 弹框 复制对象
 export default {
   data() {
@@ -513,11 +517,11 @@ export default {
         original: false,
         canMoveBox: true,
         autoCrop: true,
-        autoCropHeight: 500,
+        autoCropHeight: 400,
         fixedBox: false,
         fixed: true,
         maxImgSize: 3000, // 图片最大像素
-        fixedNumber: [97, 100],
+        fixedNumber: [375, 250],
       }, // 截图配置
       rules: {
         goodName: [{ required: true, validator: DEPT_NAME, trigger: "blur" }],
@@ -628,16 +632,24 @@ export default {
           value: "3",
         },
       ],
+      qnHttpimg: qnHttpimg,
+      uploadData: { key: "", token: "" },
     };
   },
   created() {
     this.getTableHeight(); // 表格高度
+    this.getQnTokenData(); // 获取七牛token
   },
   mounted() {
     this.getTable(); // 获取列表数据
     this.getSelectData(); // 获取下拉列表
   },
   methods: {
+    // 获取七牛token
+    async getQnTokenData() {
+      const { data } = await getQnToken();
+      this.uploadData.token = data;
+    },
     // 页面 taboe 高度
     getTableHeight() {
       this.$nextTick(() => {
@@ -678,11 +690,12 @@ export default {
       const fileObj = f.file;
       const formData = new FormData();
       formData.append("file", fileObj);
-      formData.uploadType = true;
-      updateFile(formData).then((res) => {
+      formData.append("key", this.uploadData.key);
+      formData.append("token", this.uploadData.token);
+      getQnImg(formData).then((res) => {
         this.goodsUploadList.push({
-          id: res.data.id,
-          img: res.data.url,
+          img: this.qnHttpimg + res.key,
+          id: res.key,
         });
       });
     },
@@ -737,6 +750,7 @@ export default {
         this.$message.error("只能上传 png jpeg jpg 格式图片!");
         return false;
       } else {
+        this.uploadData.key = `picture_${new Date().getTime()}_${file.name}`;
         return true;
       }
     },
@@ -753,12 +767,17 @@ export default {
     },
     // 删除图片
     deleteCover() {
-      deleteFile({
-        id: this.imgId,
-      }).then(() => {
+      this.$confirm("此操纵将永久删除该图片,是否继续?", {
+        confirmButtonText: "确定",
+        type: "info",
+      }).then(async () => {
         this.form.showImgInfo = "";
-        this.imgId = "";
         this.coverImg = null;
+        this.imgArr = [];
+        await deleteQnImg({
+          key: this.imgId,
+        });
+        this.imgId = "";
       });
     },
     // 截图完成
@@ -767,16 +786,17 @@ export default {
         this.btnloading = true;
         const formData = new FormData();
         formData.append("file", obj);
-        formData.uploadType = true;
-        updateFile(formData)
+        formData.append("key", this.uploadData.key);
+        formData.append("token", this.uploadData.token);
+        getQnImg(formData)
           .then((res) => {
             this.btnloading = false;
             this.imgArr.push({
-              img: res.data.url,
-              id: res.data.id,
+              img: this.qnHttpimg + res.key,
+              id: res.key,
             });
-            this.coverImg = res.data.url;
-            this.imgId = res.data.id;
+            this.coverImg = this.qnHttpimg + res.key;
+            this.imgId = res.key;
             this.dialogVisibleCro = false;
           })
           .catch(() => {
@@ -806,11 +826,14 @@ export default {
         confirmButtonText: "确定",
         type: "info",
       }).then(async () => {
-        deleteFile({
-          id: row.id,
+        deleteQnImg({
+          key: row.id,
         }).then(() => {
           this.goodsUploadList.splice(index, 1);
         });
+        // .catch(() => {
+        //   this.goodsUploadList.splice(index, 1);
+        // });
       });
     },
     // 获取详情
@@ -929,14 +952,14 @@ export default {
     // 关闭弹窗
     handleClose() {
       if (this.imgId !== "" && this.dialogTitle !== "编辑") {
-        deleteFile({
-          id: this.imgId,
+        deleteQnImg({
+          key: this.imgId,
         });
       }
       if (this.goodsUploadList.length && this.dialogTitle !== "编辑") {
         this.goodsUploadList.forEach((item) => {
-          deleteFile({
-            id: item.id,
+          deleteQnImg({
+            key: item.id,
           });
         });
       }
@@ -1073,5 +1096,17 @@ export default {
   top: 0;
   width: 20px;
   height: 20px;
+}
+.delete-img-cover {
+  cursor: pointer;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 30px;
+  height: 30px;
+}
+.cover-img-style {
+  width: 100%;
+  height: 100%;
 }
 </style>

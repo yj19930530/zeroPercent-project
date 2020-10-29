@@ -210,8 +210,9 @@ import {
   deleteRow, // 删除
   getRowDetail, // 获取详情
 } from "@/api/business";
-import { updateFile, deleteFile } from "@/api/index";
+import { deleteQnImg, getQnToken, getQnImg } from "@/api/index";
 import { DEPT_NAME } from "@/utils/validation";
+import { qnHttpimg } from "@/utils/config";
 import { showToast, objCopyPro } from "@/utils/common.js"; // 通用方法 弹框 复制对象
 export default {
   data() {
@@ -244,7 +245,7 @@ export default {
         fixedBox: false,
         fixed: true,
         maxImgSize: 3000, // 图片最大像素
-        fixedNumber: [97, 100],
+        fixedNumber: [100, 100],
       }, // 截图配置
       rules: {
         name: [{ required: true, validator: DEPT_NAME, trigger: "blur" }],
@@ -253,15 +254,23 @@ export default {
       imgArr: [], // 上传图片arr
       imgId: "", // 删除的图片id
       nameValue: "", // 搜索商家名称
+      qnHttpimg: qnHttpimg,
+      uploadData: { key: "", token: "" },
     };
   },
   created() {
     this.getTableHeight(); // 表格高度
+    this.getQnTokenData(); // 获取七牛token
   },
   mounted() {
     this.getTable(); // 获取列表数据
   },
   methods: {
+    // 获取七牛token
+    async getQnTokenData() {
+      const { data } = await getQnToken();
+      this.uploadData.token = data;
+    },
     // 页面 taboe 高度
     getTableHeight() {
       this.$nextTick(() => {
@@ -307,6 +316,7 @@ export default {
         this.$message.error("只能上传 png jpeg jpg 格式图片!");
         return false;
       } else {
+        this.uploadData.key = `picture_${new Date().getTime()}_${file.name}`;
         return true;
       }
     },
@@ -329,8 +339,8 @@ export default {
       }).then(async () => {
         this.form.logo = "";
         this.coverImg = null;
-        await deleteFile({
-          id: this.imgId,
+        await deleteQnImg({
+          key: this.imgId,
         });
         this.imgId = "";
       });
@@ -341,16 +351,17 @@ export default {
         this.btnloading = true;
         const formData = new FormData();
         formData.append("file", obj);
-        formData.uploadType = true;
-        updateFile(formData)
+        formData.append("key", this.uploadData.key);
+        formData.append("token", this.uploadData.token);
+        getQnImg(formData)
           .then((res) => {
             this.btnloading = false;
             this.imgArr.push({
-              img: res.data.url,
-              id: res.data.id,
+              img: this.qnHttpimg + res.key,
+              id: res.key,
             });
-            this.coverImg = res.data.url;
-            this.imgId = res.data.id;
+            this.coverImg = this.qnHttpimg + res.key;
+            this.imgId = res.key;
             this.dialogVisibleCro = false;
           })
           .catch(() => {
@@ -433,11 +444,12 @@ export default {
     // 关闭弹窗
     handleClose() {
       if (this.imgId !== "" && this.dialogTitle !== "编辑") {
-        deleteFile({
-          id: this.imgId,
+        deleteQnImg({
+          key: this.imgId,
         });
       }
       this.imgId = "";
+      this.imgArr = [];
       this.coverImg = null;
       this.$refs["ruleForm"].resetFields(); // 重置表单
       this.form = {

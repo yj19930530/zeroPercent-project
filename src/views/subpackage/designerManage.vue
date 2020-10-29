@@ -56,7 +56,7 @@
             :show-overflow-tooltip="true"
           >
             <template slot-scope="scope">
-              <span>{{ scope.row.goodNum || "-" }}</span>
+              <span>{{ scope.row.goodNum }}</span>
             </template>
           </el-table-column>
           <el-table-column
@@ -201,8 +201,9 @@ import {
   deleteRow, // 删除
   getRowDetail, // 获取详情
 } from "@/api/designer";
-import { updateFile, deleteFile } from "@/api/index";
+import { deleteQnImg, getQnToken, getQnImg } from "@/api/index";
 import { DEPT_NAME } from "@/utils/validation";
+import { qnHttpimg } from "@/utils/config";
 import { showToast, objCopyPro } from "@/utils/common.js"; // 通用方法 弹框 复制对象
 export default {
   data() {
@@ -235,7 +236,7 @@ export default {
         fixedBox: false,
         fixed: true,
         maxImgSize: 3000, // 图片最大像素
-        fixedNumber: [97, 100],
+        fixedNumber: [100, 100],
       }, // 截图配置
       rules: {
         name: [{ required: true, validator: DEPT_NAME, trigger: "blur" }],
@@ -244,10 +245,13 @@ export default {
       imgArr: [], // 上传图片arr
       imgId: "", // 删除的图片id
       nameValue: "", // 搜索商家名称
+      qnHttpimg: qnHttpimg,
+      uploadData: { key: "", token: "" },
     };
   },
   created() {
     this.getTableHeight(); // 表格高度
+    this.getQnTokenData(); // 获取七牛token
   },
   mounted() {
     this.getTable(); // 获取列表数据
@@ -259,6 +263,11 @@ export default {
         let data = document.getElementById("box-card");
         this.tableHeight = data.offsetHeight - 150;
       });
+    },
+    // 获取七牛token
+    async getQnTokenData() {
+      const { data } = await getQnToken();
+      this.uploadData.token = data;
     },
     // 获取数据列表
     async getTable() {
@@ -277,7 +286,9 @@ export default {
           this.loading = false;
           this.tableLsit = res.data.list;
           this.tableLsit.map((item) => {
-            return (item.headImg =item.headImg? JSON.parse(item.headImg):[{img:''}]);
+            return (item.headImg = item.headImg
+              ? JSON.parse(item.headImg)
+              : [{ img: "" }]);
           });
           this.total = res.data.total;
         })
@@ -298,6 +309,7 @@ export default {
         this.$message.error("只能上传 png jpeg jpg 格式图片!");
         return false;
       } else {
+        this.uploadData.key = `picture_${new Date().getTime()}_${file.name}`;
         return true;
       }
     },
@@ -314,12 +326,16 @@ export default {
     },
     // 删除图片
     deleteCover() {
-      deleteFile({
-        id: this.imgId,
-      }).then(() => {
-        this.form.headImg = "";
-        this.imgId = "";
+      this.$confirm("此操纵将永久删除该图片,是否继续?", {
+        confirmButtonText: "确定",
+        type: "info",
+      }).then(async () => {
+        this.form.logo = "";
         this.coverImg = null;
+        await deleteQnImg({
+          key: this.imgId,
+        });
+        this.imgId = "";
       });
     },
     // 截图完成
@@ -328,16 +344,17 @@ export default {
         this.btnloading = true;
         const formData = new FormData();
         formData.append("file", obj);
-        formData.uploadType = true;
-        updateFile(formData)
+        formData.append("key", this.uploadData.key);
+        formData.append("token", this.uploadData.token);
+        getQnImg(formData)
           .then((res) => {
             this.btnloading = false;
             this.imgArr.push({
-              img: res.data.url,
-              id: res.data.id,
+              img: this.qnHttpimg + res.key,
+              id: res.key,
             });
-            this.coverImg = res.data.url;
-            this.imgId = res.data.id;
+            this.coverImg = this.qnHttpimg + res.key;
+            this.imgId = res.key;
             this.dialogVisibleCro = false;
           })
           .catch(() => {
@@ -365,9 +382,13 @@ export default {
     async findDtails(row) {
       const { data } = await getRowDetail({ id: row.id });
       this.form = objCopyPro(this.form, data);
-      const imgObj = JSON.parse(data.headImg)[0];
-      this.coverImg = imgObj.img;
-      this.imgId = imgObj.id;
+      try {
+        const imgObj = JSON.parse(data.headImg)[0];
+        this.coverImg = imgObj.img;
+        this.imgId = imgObj.id;
+      } catch {
+        console.log("err");
+      }
       this.dialogVisible = true;
       return this.form;
     },
@@ -400,6 +421,7 @@ export default {
     submitForm() {
       this.$refs["ruleForm"].validate((valid) => {
         if (valid) {
+          if (!this.imgArr.length) return showToast("请上传头像", "error");
           this.btnloading = true;
           this.form.headImg = JSON.stringify(this.imgArr);
           addRowIn(this.form)
@@ -419,11 +441,12 @@ export default {
     // 关闭弹窗
     handleClose() {
       if (this.imgId !== "" && this.dialogTitle !== "编辑") {
-        deleteFile({
-          id: this.imgId,
+        deleteQnImg({
+          key: this.imgId,
         });
       }
       this.imgId = "";
+      this.imgArr = [];
       this.coverImg = null;
       this.$refs["ruleForm"].resetFields(); // 重置表单
       this.form = {

@@ -3,30 +3,6 @@ import VueRouter from 'vue-router'
 Vue.use(VueRouter)
 const routes = [
     {
-        path: '/',
-        name: 'login',
-        redirect: '/login',
-        meta: {
-            name: '登录'
-        }
-    },
-    {
-        path: '/login',
-        name: 'login2',
-        component: () => import('@/views/page/login.vue'),
-        meta: {
-            name: '登录'
-        }
-    },
-    {
-        path: '/progress',
-        name: 'progress',
-        component: () => import('@/views/subpackage/progress.vue'),
-        meta: {
-            name: '商品进度管理'
-        }
-    },
-    {
         path: '/info',
         name: 'info',
         redirect: '/accountManage',
@@ -42,7 +18,7 @@ const routes = [
                 icon: '',
                 name: '账号管理'
             }
-        }, { 
+        }, {
             path: '/userManage',
             name: 'userManage',
             component: () => import('@/views/subpackage/userManage.vue'),
@@ -115,6 +91,30 @@ const routes = [
                 name: '运营数据'
             }
         }]
+    },
+    {
+        path: '/',
+        name: 'login',
+        redirect: '/login',
+        meta: {
+            name: '登录'
+        }
+    },
+    {
+        path: '/login',
+        name: 'login2',
+        component: () => import('@/views/page/login.vue'),
+        meta: {
+            name: '登录'
+        }
+    },
+    {
+        path: '/progress',
+        name: 'progress',
+        component: () => import('@/views/subpackage/progress.vue'),
+        meta: {
+            name: '商品进度管理'
+        }
     },
 ]
 const router = new VueRouter({

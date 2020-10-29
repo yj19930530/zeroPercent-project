@@ -4,14 +4,14 @@ import Cookies from 'js-cookie';
 import { Message, MessageBox } from 'element-ui';
 
 let instance = axios.create({
-    // baseURL: 'http://192.168.1.72:9009/',
-    baseURL: 'http://47.114.135.205:9009/',
+    baseURL: 'http://192.168.1.72:9009/bf0',
+    // baseURL: 'http://47.114.135.205:9009/',
 });
 instance.interceptors.request.use(config => {
     const questStatus = config.method;
     config.timeout = 15000;
     const access_token = Cookies.get('Access-Token');
-    config.headers.post['Authorization'] = 'Bearer ' + access_token;
+    config.headers.post['token'] = access_token;
     switch (questStatus) {
         case 'post': {
             config.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -28,8 +28,6 @@ instance.interceptors.request.use(config => {
             } else if (config.params.arrtype) {
                 config.data = config.params.arr;
                 delete config.params;
-            } else {
-                config.headers.post['Authorization'] = 'Bearer ' + access_token;
             }
             break;
         }
@@ -72,7 +70,6 @@ instance.interceptors.response.use(response => {
             });
             return Promise.reject();
         }
-        debugger
     }
 }, error => {
     Message({

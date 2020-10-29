@@ -1,2 +1,3 @@
-const httpImg = 'http://192.168.1.72:9009'
-export { httpImg }
+const qnRequest = 'http://up-z2.qiniu.com';
+const qnHttpimg = "https://percentzero.trunshare.com/";
+export { qnRequest, qnHttpimg }
